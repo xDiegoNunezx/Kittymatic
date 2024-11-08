@@ -40,10 +40,14 @@ class CatViewModel: ObservableObject {
         return cat.history.reduce(0) { $0 + $1.amount }
     }
         
-    func dispensar() {
-        guard let cat else { return }
-        fullAmount -= cat.amount
-        cat.history.append(History(date: Date(), amount: 0.5))
+    func dispensar() -> Bool {
+        guard let cat else { return false }
+        if(fullAmount - cat.amount >= 0) {
+            fullAmount -= cat.amount
+            cat.history.append(History(date: Date(), amount: 0.5))
+            return true
+        }
+        return false
     }
 }
 

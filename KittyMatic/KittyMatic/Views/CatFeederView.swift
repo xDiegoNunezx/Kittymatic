@@ -10,6 +10,7 @@ struct CatFeederView: View {
     @ObservedObject var viewModel: CatViewModel
     @State private var currentTime = Date()
     @State private var gramosConsumidos: Double = 0.5
+    @State private var canFeed: Bool = true
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -105,6 +106,7 @@ struct CatFeederView: View {
                             Text(String(viewModel.fullAmount))
                                 .font(.system(size: 48))
                                 .fontWeight(.bold)
+                                .foregroundStyle(canFeed ? .black : .red)
                             Text("de comida disponible")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
@@ -120,6 +122,7 @@ struct CatFeederView: View {
                     HStack(spacing: 20) {
                         Button(action: {
                             // Acción para dispensar comida
+                            canFeed = viewModel.dispensar()
                         }) {
                             VStack {
                                 Image(systemName: "tray.and.arrow.down.fill")
@@ -205,7 +208,7 @@ struct CatFeederView: View {
                     }
                     Spacer()
                 }
-                .padding(.bottom,10)
+                .padding(.bottom,50)
             }
         }
         .onAppear {

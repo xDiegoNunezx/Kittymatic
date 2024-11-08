@@ -23,8 +23,7 @@ struct FeedingReportsHistoryView: View {
                 .ignoresSafeArea()
             
             if let history = viewModel.cat?.history {
-                List {
-                    ForEach(history, id: \.date) { report in
+                ForEach(history, id: \.date) { report in
                         HStack {
                             VStack(alignment: .leading) {
                                 Text("Reporte de Comida")
@@ -40,8 +39,6 @@ struct FeedingReportsHistoryView: View {
                                 .foregroundColor(.gray)
                         }
                     }
-                }
-                
             } else {
                 Text("No hay horarios de comida")
                     .font(.title3)
@@ -50,6 +47,7 @@ struct FeedingReportsHistoryView: View {
             }
         }
         .navigationTitle("Historial de Comidas")
+        .navigationBarHidden(true)
     }
 }
 

@@ -7,7 +7,7 @@
 
 import Foundation
 
-class History: Codable {
+class History: Codable, Identifiable {
     var date: Date
     var amount: Double
     
