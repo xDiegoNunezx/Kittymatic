@@ -1,0 +1,6 @@
+framework module Pods_KittyMatic {
+  umbrella header "Pods-KittyMatic-umbrella.h"
+
+  export *
+  module * { export * }
+}
