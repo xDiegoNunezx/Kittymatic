@@ -157,7 +157,7 @@ struct CatFeederFormView: View {
             }
         }
         .background(Color.blue.opacity(0.15)
-            .edgesIgnoringSafeArea(.all))
+        .edgesIgnoringSafeArea(.all))
         .onTapGesture {
             UIApplication.shared.closeKeyboard()
         }
