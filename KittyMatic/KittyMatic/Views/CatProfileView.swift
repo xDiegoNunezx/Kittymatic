@@ -12,7 +12,7 @@ struct CatProfileView: View {
     @ObservedObject var viewModel: CatViewModel
     @State var age: Int = 0
     @State var weight: Double = 0.0
-    @State var breed: String = ""
+    @State var breed: String = ""    
     
     var body: some View {
         NavigationView {
