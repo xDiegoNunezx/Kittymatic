@@ -58,7 +58,7 @@ class CatViewModel: ObservableObject {
         guard let cat else { return false }
         if(fullAmount - cat.amount >= 0) {
             fullAmount -= cat.amount
-            cat.history.append(History(date: Date(), amount: 0.5))
+            cat.history.append(History(date: Date(), amount: cat.amount))
             return true
         }
         return false

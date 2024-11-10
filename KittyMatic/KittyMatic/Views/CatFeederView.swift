@@ -10,7 +10,7 @@ struct CatFeederView: View {
     @EnvironmentObject var viewModel: CatViewModel
     @EnvironmentObject var mqttManager: MQTTManager
     @State private var currentTime = Date()
-    @State private var gramosConsumidos: Double = 0.5
+    @State private var gramosConsumidos: Double = 0.0
     @State private var canFeed: Bool = true
     
     private var dateFormatter: DateFormatter {
@@ -125,6 +125,7 @@ struct CatFeederView: View {
                             // Acción para dispensar comida
                             canFeed = viewModel.dispensar()
                             mqttManager.sendMsg(onTopic: "Orden", withMessage: "dispensar")
+                            gramosConsumidos = viewModel.getGramosConsumidos()
                         }) {
                             VStack {
                                 Image(systemName: "tray.and.arrow.down.fill")
