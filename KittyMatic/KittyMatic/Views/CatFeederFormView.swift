@@ -7,7 +7,8 @@
 import SwiftUI
 
 struct CatFeederFormView: View {
-    @ObservedObject var viewModel: CatViewModel
+    @EnvironmentObject var viewModel: CatViewModel
+    @EnvironmentObject var mqttManager: MQTTManager
     
     @Environment(\.presentationMode) var presentationMode
     @State private var catName: String = ""
@@ -138,6 +139,12 @@ struct CatFeederFormView: View {
                         viewModel.cat = Cat(name: catName, age: catAge, weight: catWeight, breed: catBreed, photo: fotoData, schedule: horariosComida.map { formatearHora($0) }, history: [], amount: 45)
                         
                         viewModel.save()
+                        
+                        for horario in horariosComida.map({formatearHora($0)}) {
+                            print("Horarios: ", horario)
+                            mqttManager.sendMsg(onTopic: "SettearHora", withMessage: horario)
+                        }
+                        
                     }) {
                         Text("Agregar Gato")
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -220,7 +227,7 @@ struct ImagePicker: UIViewControllerRepresentable {
 
 struct CatFeederFormView_Previews: PreviewProvider {
     static var previews: some View {
-        CatFeederFormView(viewModel: CatViewModel.ejemplo)
+        CatFeederFormView()
     }
 }
 

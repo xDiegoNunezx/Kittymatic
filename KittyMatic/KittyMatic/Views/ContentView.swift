@@ -10,9 +10,7 @@ import CocoaMQTT
 
 
 struct ContentView: View {
-    @StateObject private var viewModel = CatViewModel()
-    @ObservedObject var mqttManager = MQTTManager()
-    
+    @EnvironmentObject var viewModel: CatViewModel
     var body: some View {
         //        Button("Conectar") {
         //            mqttManager.subscribeTopic()
@@ -44,9 +42,9 @@ struct ContentView: View {
         //        }
         
         if viewModel.cat == nil {
-            CatFeederFormView(viewModel: viewModel)
+            CatFeederFormView()
         } else {
-            CatFeederView(viewModel: viewModel)
+            CatFeederView()
         }
     }
 }

@@ -7,11 +7,11 @@
 import SwiftUI
 
 struct CatFeederView: View {
-    @ObservedObject var viewModel: CatViewModel
+    @EnvironmentObject var viewModel: CatViewModel
+    @EnvironmentObject var mqttManager: MQTTManager
     @State private var currentTime = Date()
     @State private var gramosConsumidos: Double = 0.5
     @State private var canFeed: Bool = true
-    var mqtt: MQTTManager = MQTTManager()
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -124,7 +124,7 @@ struct CatFeederView: View {
                         Button(action: {
                             // Acción para dispensar comida
                             canFeed = viewModel.dispensar()
-                            //mqtt.dispensar()
+                            mqttManager.sendMsg(onTopic: "Orden", withMessage: "dispensar")
                         }) {
                             VStack {
                                 Image(systemName: "tray.and.arrow.down.fill")
@@ -157,6 +157,7 @@ struct CatFeederView: View {
                         
                         Button(action: {
                             // Acción para reproducir sonido
+                            mqttManager.sendMsg(onTopic: "Orden", withMessage: "sonido")
                         }) {
                             VStack {
                                 Image(systemName: "speaker.wave.2.fill")
@@ -184,9 +185,10 @@ struct CatFeederView: View {
                 VStack {
                     HStack {
                         Button(action: {
-                            print("Switch Button Pressed")
-                            viewModel.fullAmount = 100.0
-                            // Lógica para el botón de "switch"
+                            print("Reset Button Pressed")
+                            mqttManager.sendMsg(onTopic: "Orden", withMessage: "comidaDisponible")
+                            viewModel.fullAmount = getComidaDisponible()
+                            canFeed = true
                         }) {
                             Image(systemName: "arrow.trianglehead.counterclockwise")
                                 .font(.title3)
@@ -215,13 +217,100 @@ struct CatFeederView: View {
         }
         .onAppear {
             gramosConsumidos = viewModel.getGramosConsumidos()
+            viewModel.fullAmount = getComidaDisponible()
+            mqttManager.sendMsg(onTopic: "Orden", withMessage: "comidaDisponible")
+        }
+        .onChange(of: mqttManager.messages["cantidad"]) { oldValue, newValue in
+            viewModel.fullAmount = getComidaDisponible()
+        }
+        .onChange(of: mqttManager.messages["comio"]) { oldValue, newValue in
+            let comio = getCuantoComio()
+            viewModel.cat?.history.append(History(date: Date(), amount: comio))
+            gramosConsumidos = viewModel.getGramosConsumidos()
+        }
+        .onChange(of: mqttManager.messages["comio2"]) { oldValue, newValue in
+            if let comio = getCuantoComio2() {
+                viewModel.cat?.history.append(History(date: comio.1, amount: comio.0))
+                gramosConsumidos = viewModel.getGramosConsumidos()
+            }            
         }
     }
+    
+    func getComidaDisponible() -> Double {
+        if let latestMessage = mqttManager.messages["cantidad"]?.last {
+            Double(latestMessage) ?? 100
+        } else {
+            100
+        }
+    }
+    
+    func getCuantoComio() -> Double {
+        if let latestMessage = mqttManager.messages["comio"]?.last {
+            Double(latestMessage) ?? 0.0
+        } else {
+            0.0
+        }
+    }
+    
+    func getCuantoComio2() -> (Double, Date)? {
+        if let latestMessage = mqttManager.messages["comio2"]?.last {
+            parseInputString(input: latestMessage)
+        } else {
+            nil
+        }
+    }
+    
+    func parseInputString(input: String) -> (Double, Date)? {
+        // Separar la cadena en número y hora
+        let components = input.split(separator: " ")
+        guard components.count == 2 else {
+            print("La cadena no tiene el formato correcto")
+            return nil
+        }
+        
+        // Convertir el número a Double
+        guard let amount = Double(components[0]) else {
+            print("No se pudo convertir el número")
+            return nil
+        }
+        
+        // Extraer la hora y minuto
+        let timeString = String(components[1])
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm"
+        
+        // Convertir la hora a un objeto Date usando la fecha actual
+        guard let timeDate = timeFormatter.date(from: timeString) else {
+            print("No se pudo convertir la hora")
+            return nil
+        }
+        
+        // Obtener la fecha actual sin la parte de la hora
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())  // Fecha de hoy a las 00:00
+        
+        // Crear un objeto Date con la fecha actual y la hora obtenida
+        let fullDate = calendar.date(bySettingHour: calendar.component(.hour, from: timeDate),
+                                     minute: calendar.component(.minute, from: timeDate),
+                                     second: 0,
+                                     of: startOfDay)
+        
+        guard let finalDate = fullDate else {
+            print("No se pudo crear la fecha final")
+            return nil
+        }
+        
+        return (amount, finalDate)
+    }
+    
 }
 
 struct CatFeederView_Previews: PreviewProvider {
     static var previews: some View {
-        CatFeederView(viewModel: CatViewModel.ejemplo)
+        CatFeederView()
+            .environmentObject(CatViewModel.ejemplo)
+            .environmentObject(MQTTManager())
+        
     }
 }
 

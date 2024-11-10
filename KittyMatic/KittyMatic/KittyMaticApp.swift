@@ -8,10 +8,15 @@
 import SwiftUI
 
 @main
-struct KittyMaticApp: App {    
+struct KittyMaticApp: App {
+    @StateObject private var mqttManager = MQTTManager()
+    @StateObject private var viewModel = CatViewModel()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(mqttManager)
+                .environmentObject(viewModel)
         }
     }
 }
