@@ -16,11 +16,13 @@ class MQTTManager: ObservableObject {
         // Configuración del cliente MQTT
         mqtt = CocoaMQTT(clientID: "iOS Device", host: "raspberrypi.local", port: 1883)
         mqtt.delegate = self
-        mqtt.connect()
+        _ = mqtt.connect()
     }
     
     func subscribeTopic() {
-        mqtt.subscribe("test")  // Suscribirse al tema donde Python publica mensajes
+        mqtt.subscribe("cantidad")  // Suscribirse al tema donde Python publica mensajes
+        mqtt.subscribe("comio")
+        mqtt.subscribe("comio2")
     }
     
     func disconnect() {
@@ -28,10 +30,12 @@ class MQTTManager: ObservableObject {
     }
     
     func sendMsg(onTopic: String, withMessage msg: String) {
+        print("Enviamos: \(msg) a \(onTopic)")
         mqtt.publish(onTopic, withString: msg)
     }
     
     private func addMessage(_ message: String, forTopic topic: String) {
+        print("Recibimos: \(message) de \(topic)")
         // Agregar mensaje al diccionario bajo su tópico correspondiente
         if messages[topic] != nil {
             messages[topic]?.append(message)

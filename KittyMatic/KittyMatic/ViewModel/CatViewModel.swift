@@ -59,6 +59,7 @@ class CatViewModel: ObservableObject {
         if(fullAmount - cat.amount >= 0) {
             fullAmount -= cat.amount
             cat.history.append(History(date: Date(), amount: cat.amount))
+            self.save()
             return true
         }
         return false

@@ -184,6 +184,7 @@ struct CatFeederFormView: View {
     // Función para formatear la hora para mostrarla en la lista
     private func formatearHora(_ date: Date) -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
     }

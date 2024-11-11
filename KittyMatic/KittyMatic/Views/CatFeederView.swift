@@ -126,6 +126,7 @@ struct CatFeederView: View {
                             canFeed = viewModel.dispensar()
                             mqttManager.sendMsg(onTopic: "Orden", withMessage: "dispensar")
                             gramosConsumidos = viewModel.getGramosConsumidos()
+                            print("Dispensando...")
                         }) {
                             VStack {
                                 Image(systemName: "tray.and.arrow.down.fill")
@@ -225,13 +226,15 @@ struct CatFeederView: View {
             viewModel.fullAmount = getComidaDisponible()
         }
         .onChange(of: mqttManager.messages["comio"]) { oldValue, newValue in
-            let comio = getCuantoComio()
-            viewModel.cat?.history.append(History(date: Date(), amount: comio))
+            //let comio = getCuantoComio()
+            //viewModel.cat?.history.append(History(date: Date(), amount: comio))
+            //viewModel.save()
             gramosConsumidos = viewModel.getGramosConsumidos()
         }
         .onChange(of: mqttManager.messages["comio2"]) { oldValue, newValue in
             if let comio = getCuantoComio2() {
                 viewModel.cat?.history.append(History(date: comio.1, amount: comio.0))
+                viewModel.save()
                 gramosConsumidos = viewModel.getGramosConsumidos()
             }            
         }
@@ -264,6 +267,7 @@ struct CatFeederView: View {
     func parseInputString(input: String) -> (Double, Date)? {
         // Separar la cadena en número y hora
         let components = input.split(separator: " ")
+        print(components)
         guard components.count == 2 else {
             print("La cadena no tiene el formato correcto")
             return nil
@@ -278,6 +282,7 @@ struct CatFeederView: View {
         // Extraer la hora y minuto
         let timeString = String(components[1])
         let timeFormatter = DateFormatter()
+        timeFormatter.locale = Locale(identifier: "en_US_POSIX")
         timeFormatter.dateFormat = "HH:mm"
         
         // Convertir la hora a un objeto Date usando la fecha actual

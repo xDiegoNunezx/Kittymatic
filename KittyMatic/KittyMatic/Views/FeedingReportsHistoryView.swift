@@ -13,6 +13,7 @@ struct FeedingReportsHistoryView: View {
     
     private var dateFormatter: DateFormatter {
         let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         dateFormatter.dateFormat = "HH:mm" // Formato de 24 horas
         return dateFormatter
     }
@@ -34,7 +35,7 @@ struct FeedingReportsHistoryView: View {
                                     .foregroundColor(.gray)
                             }
                             Spacer()
-                            Text(report.date, style: .date)
+                            Text(dateFormatter.string(from: report.date))
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }
