@@ -14,7 +14,8 @@ struct FeedingRecord {
 }
 
 struct StatisticsHistoryView: View {
-    @ObservedObject var viewModel: CatViewModel
+    @EnvironmentObject var viewModel: CatViewModel
+    
     @State private var feedingRecords: [FeedingRecord] = [
         FeedingRecord(date: Date().addingTimeInterval(-86400 * 3), amount: 50), // 3 días atrás
         FeedingRecord(date: Date().addingTimeInterval(-86400 * 2), amount: 40), // 2 días atrás
@@ -44,17 +45,21 @@ struct StatisticsHistoryView: View {
                         .padding()
                     
                     // Gráfico de barras de comida por día
-                    Chart {
-                        ForEach(feedingRecords, id: \.date) { record in
-                            BarMark(
-                                x: .value("Fecha", record.date, unit: .day),
-                                y: .value("Comida (gr)", record.amount)
-                            )
-                            .foregroundStyle(Color(hex: "608BC1"))
+                    if let history = viewModel.cat?.history {
+                        Chart {
+                            ForEach(history, id: \.date) { record in
+                                BarMark(
+                                    x: .value("Fecha", record.date, unit: .day),
+                                    y: .value("Comida [gr]", record.amount)
+                                )
+                                .foregroundStyle(Color(hex: "608BC1"))
+                            }
                         }
+                        .frame(height: 300)
+                        .padding()
+                    } else {
+                        Text("El gato no tiene historial aún :)")
                     }
-                    .frame(height: 300)
-                    .padding()
                     
                     // Resumen General
                     VStack(alignment: .leading, spacing: 10) {
@@ -120,6 +125,7 @@ struct StatisticsHistoryView: View {
 
 struct CatFeedingStatisticsView_Previews: PreviewProvider {
     static var previews: some View {
-        StatisticsHistoryView(viewModel: CatViewModel.ejemplo)
+        StatisticsHistoryView()
+            .environmentObject(CatViewModel())
     }
 }

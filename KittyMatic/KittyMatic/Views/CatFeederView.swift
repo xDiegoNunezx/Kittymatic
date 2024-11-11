@@ -142,7 +142,7 @@ struct CatFeederView: View {
                         }
                         
                         NavigationLink {
-                            StatisticsHistoryView(viewModel: viewModel)
+                            StatisticsHistoryView()
                         } label: {
                             VStack {
                                 Image(systemName: "chart.bar.fill")

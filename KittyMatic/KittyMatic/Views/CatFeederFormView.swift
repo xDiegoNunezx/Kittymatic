@@ -136,7 +136,12 @@ struct CatFeederFormView: View {
                     Button(action: {
                         let fotoData = photo?.jpegData(compressionQuality: 0.8)
                         
-                        viewModel.cat = Cat(name: catName, age: catAge, weight: catWeight, breed: catBreed, photo: fotoData, schedule: horariosComida.map { formatearHora($0) }, history: [], amount: 10)
+                        viewModel.cat = Cat(name: catName, age: catAge, weight: catWeight, breed: catBreed, photo: fotoData, schedule: horariosComida.map { formatearHora($0) }, history: [
+                            History(date: Date().addingTimeInterval(-86400 * 3), amount: 50), // 3 días atrás
+                            History(date: Date().addingTimeInterval(-86400 * 2), amount: 40), // 2 días atrás
+                            History(date: Date().addingTimeInterval(-86400), amount: 60),   // 1 día atrás
+                            History(date: Date(), amount: 55) // Hoy
+                        ], amount: 10)
                         
                         viewModel.save()
                         
