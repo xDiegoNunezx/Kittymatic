@@ -45,7 +45,7 @@ struct StatisticsHistoryView: View {
                         .padding()
                     
                     // Gráfico de barras de comida por día
-                    if let history = viewModel.cat?.history {
+                    if let history = viewModel.cat?.history, history.count != 0 {
                         Chart {
                             ForEach(history, id: \.date) { record in
                                 BarMark(

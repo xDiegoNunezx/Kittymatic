@@ -12,127 +12,141 @@ struct CatProfileView: View {
     @ObservedObject var viewModel: CatViewModel
     @State var age: Int = 0
     @State var weight: Double = 0.0
-    @State var breed: String = ""    
+    @State var breed: String = ""
     
     var body: some View {
         NavigationView {
             ZStack {
                 Color(red: 0.87, green: 0.94, blue: 1.0) // Fondo azul bebé
-                    .ignoresSafeArea()  // Este fondo puede ignorar el área segura
+                    .ignoresSafeArea()
                 
-                VStack() {
-                    // Foto y nombre del gato
-                    HStack(spacing: 40) {
-                        VStack{
-                            
-                            if let photoData = viewModel.cat?.photo, let uiImage = UIImage(data: photoData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 140, height: 140)
-                                    .cornerRadius(15)
-                                    .shadow(radius: 5)
-                                    .padding(.top, 30)
-                            } else {
-                                Image(systemName: "cat")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 100, height: 100)
-                                    .foregroundColor(.gray)
-                            }
-                            
-                            Text(viewModel.cat?.name ?? "")
-                                .font(.largeTitle)
-                                .bold()
-                                .foregroundColor(.primary)
+                VStack(spacing: 20) {
+                    // Sección de foto y nombre
+                    VStack {
+                        if let photoData = viewModel.cat?.photo, let uiImage = UIImage(data: photoData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 140, height: 140)
+                                .clipShape(Circle())
+                                .shadow(radius: 10)
+                                .padding(.top, 30)
+                        } else {
+                            Image(systemName: "cat")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 100, height: 100)
+                                .foregroundColor(.gray)
                         }
                         
-                        
-                        // Información sobre edad y peso
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Edad: " + String(age) + " años")
-                                .font(.title3)
-                                .foregroundColor(.black)
-                            
-                            Text("Peso: " + String(weight) + " kg")
-                                .font(.title3)
-                                .foregroundColor(.black)
-                            
-                            Text("Raza: " + breed)
-                                .font(.title3)
-                                .foregroundColor(.black)
-                        }
-                        .padding(.top, 5)
+                        Text(viewModel.cat?.name ?? "Nombre del Gato")
+                            .font(.largeTitle)
+                            .bold()
+                            .foregroundColor(.primary)
+                            .padding(.top, 10)
                     }
                     
+                    // Información de edad, peso y raza
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Edad:")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                            Text("\(age) años")
+                                .font(.title3)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        HStack {
+                            Text("Peso:")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                            Text(String(format: "%.1f kg", weight))
+                                .font(.title3)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        HStack {
+                            Text("Raza:")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                            Text(breed)
+                                .font(.title3)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(15)
+                    .shadow(radius: 5)
+                    
                     // Sección de horarios de comida
-                    VStack(alignment: .center) {
-                        Text("Horarios de comida")
+                    VStack(alignment: .leading) {
+                        Text("Horarios de Comida")
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.primary)
-                            .padding(.top, 15)
+                            .padding(.bottom, 5)
                         
                         if let schedule = viewModel.cat?.schedule {
-                            ForEach(schedule, id: \.self) { meal in
-                                HStack {
-                                    Text("45 g")
-                                        .font(.title3)
-                                        .foregroundColor(.gray)
-                                    
-                                    Spacer()
-                                    
-                                    Text(meal)
-                                        .font(.title3)
-                                        .foregroundColor(.blue)
+                            VStack(spacing: 8) {
+                                ForEach(schedule, id: \.self) { meal in
+                                    HStack {
+                                        Text("45 g")
+                                            .font(.callout)
+                                            .foregroundColor(.gray)
+                                        
+                                        Spacer()
+                                        
+                                        Text(meal)
+                                            .font(.callout)
+                                            .foregroundColor(.blue)
+                                    }
+                                    .padding(10)
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .shadow(radius: 2)
                                 }
-                                .padding(.top, 10)
                             }
                         } else {
                             Text("No hay horarios de comida")
-                                .font(.title3)
+                                .font(.callout)
                                 .foregroundColor(.gray)
-                                .padding(.top, 10)
+                                .padding(10)
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .shadow(radius: 2)
                         }
-                        
                     }
+                    .padding()
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(15)
+                    .shadow(radius: 5)
                     
-                    // Botón de historial de estadísticas
                     Spacer()
                     
-                    NavigationLink {
-                        FeedingReportsHistoryView(viewModel: viewModel)
-                    } label: {
-                        Text("Ver Historial de Estadísticas")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                            .padding([.leading, .trailing], 20)
-                            .padding(.bottom, 30)
-                    }
-                    .padding(.top, 30)
-                }
-                .padding()  // Este padding asegura que el contenido no se salga del área segura
-                .edgesIgnoringSafeArea(.bottom)  // Solo si el fondo necesita extenderse hacia abajo
-            }
-            .onAppear {
-                if let cat = viewModel.cat {
-                    age = cat.age
-                    weight = cat.weight
-                    breed = cat.breed
-                }
                 
+                
+                }
+                .padding()
+                .onAppear {
+                    if let cat = viewModel.cat {
+                        age = cat.age
+                        weight = cat.weight
+                        breed = cat.breed
+                    }
+                }
             }
         }
     }
 }
 
 // Vista previa para ver el diseño
-struct CatProfileDetailView_Previews: PreviewProvider {
+struct CatProfileView_Previews: PreviewProvider {
     static var previews: some View {
         CatProfileView(viewModel: CatViewModel.ejemplo)
     }
 }
-

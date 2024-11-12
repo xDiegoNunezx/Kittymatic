@@ -26,7 +26,38 @@ struct CatFeederView: View {
                 Color(red: 0.87, green: 0.94, blue: 1.0) // Fondo azul bebé
                     .ignoresSafeArea()
                 
-                VStack(spacing: 25) {
+                ScrollView(.vertical, showsIndicators: true) {
+                    // Botón "+" fuera del área segura para agregar un nuevo gato
+                    VStack {
+                        HStack {
+                            Button(action: {
+                                print("Reset Button Pressed")
+                                mqttManager.sendMsg(onTopic: "Orden", withMessage: "comidaDisponible")
+                                viewModel.fullAmount = getComidaDisponible()
+                                canFeed = true
+                            }) {
+                                Image(systemName: "arrow.trianglehead.counterclockwise")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.blue)
+                                    .padding()
+                                    .offset(x: 10)
+                            }
+                            
+                            Spacer()
+                            Button(action: {
+                                print("add button pressed")
+                                viewModel.delete()
+                            }){
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.blue)
+                                    .padding()
+                                    .offset(x: -10)
+                            }
+                        }
+                        Spacer()
+                    }
                     // Banner con Fecha y Hora en tiempo real
                     Text(dateFormatter.string(from: currentTime))
                         .font(.headline)
@@ -35,12 +66,12 @@ struct CatFeederView: View {
                         .frame(maxWidth: .infinity)
                         .background(Color.white.opacity(0.8))
                         .cornerRadius(10)
-                        .padding(.top, 10)
+                        
                     
                     Text("ID del dispositivo: HBLS5302")
                         .font(.subheadline)
                         .foregroundColor(.gray)
-                        .padding(.top, -20)
+                        .background(Color.white.opacity(0.8))
                     
                     // Foto del Gato y Nombre (como botón)
                     HStack(spacing: 20) {
@@ -183,38 +214,7 @@ struct CatFeederView: View {
                     }
                 }
                 
-                // Botón "+" fuera del área segura para agregar un nuevo gato
-                VStack {
-                    HStack {
-                        Button(action: {
-                            print("Reset Button Pressed")
-                            mqttManager.sendMsg(onTopic: "Orden", withMessage: "comidaDisponible")
-                            viewModel.fullAmount = getComidaDisponible()
-                            canFeed = true
-                        }) {
-                            Image(systemName: "arrow.trianglehead.counterclockwise")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundColor(.blue)
-                                .padding()
-                                .offset(x: 10)
-                        }
-                        
-                        Spacer()
-                        Button(action: {
-                            print("add button pressed")
-                            viewModel.delete()
-                        }){
-                            Image(systemName: "plus.circle.fill")
-                                .font(.largeTitle)
-                                .foregroundColor(.blue)
-                                .padding()
-                                .offset(x: -10)
-                        }                        
-                    }
-                    Spacer()
-                }
-                .padding(.bottom,50)
+                
             }
         }
         .onAppear {
