@@ -135,7 +135,9 @@ struct CatFeederView: View {
                             .font(.largeTitle)
                             .foregroundColor(.blue)
                         VStack(alignment: .leading) {
-                            Text(String(viewModel.fullAmount))
+                            let percentage: Double = ((viewModel.fullAmount * 100.0) / 22.3)
+                            let fullPercentage: Double = 100.0 - percentage
+                            Text(String(format: "%.2f%", fullPercentage))
                                 .font(.system(size: 48))
                                 .fontWeight(.bold)
                                 .foregroundStyle(canFeed ? .black : .red)
