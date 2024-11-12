@@ -5,6 +5,19 @@
 //  Created by Ana Cecilia Fragoso Islas on 05/11/24.
 //
 import SwiftUI
+import CoreML
+
+struct CatBreedClassifierModel {
+    var model: CatBreedClassifier?
+    init() {
+        do {
+            model = try CatBreedClassifier(configuration: MLModelConfiguration())
+        } catch {
+            print("Failed to load CatBreedClassifier model: \(error.localizedDescription)")
+        }
+    }
+}
+
 
 struct CatFeederFormView: View {
     @EnvironmentObject var viewModel: CatViewModel
@@ -20,6 +33,10 @@ struct CatFeederFormView: View {
     @State private var horariosComida: [Date] = []  // Array de Date para almacenar los horarios
     @State private var showingImagePicker = false
     @State private var selectedPhotoIndex: Int = 0
+    @State private var catBreedClassified: String = ""
+    var catBreedClassifier = CatBreedClassifierModel()
+    @State private var breedProbabilities: [String: Double] = [:]
+    
     
     // Propiedad calculada para verificar si el formulario es válido
     private var formularioValido: Bool {
@@ -104,6 +121,48 @@ struct CatFeederFormView: View {
                             ImagePicker(image: $photo)
                         }
                         
+                        if let photo, let model = catBreedClassifier.model {
+                            Button {
+                                predictBreed(model: model)
+                            } label: {
+                                Text("Analizar gato...")
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+
+                        
+                       
+                        if catBreedClassified != "" {
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Predicción de tu gato")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .padding(.bottom, 10)
+                                
+                                Text(catBreedClassified.capitalized)
+                                    .bold()
+                                
+                                Divider()
+                                
+                                let topFiveBreeds = Array(breedProbabilities.sorted(by: { $0.1 > $1.1 }).prefix(5))
+
+                                ForEach(0..<topFiveBreeds.count, id: \.self) { index in
+                                    let (breed, probability) = topFiveBreeds[index]
+                                    HStack {
+                                        Text(breed.capitalized)
+                                            .font(.callout)
+                                            .frame(width: 140, alignment: .leading)
+                                        
+                                        ProgressBar(progress: probability)
+                                            .frame(height: 20)
+                                        
+                                        Text(String(format: "%.2f%%", probability * 100)) // Display as percentage
+                                    }
+                                }
+                            }
+                            .padding()
+                        }
+                        
                         
                         Text("Coloca los horarios sus comida                ")
                             .font(.title2)
@@ -136,12 +195,14 @@ struct CatFeederFormView: View {
                     Button(action: {
                         let fotoData = photo?.jpegData(compressionQuality: 0.8)
                         
-                        viewModel.cat = Cat(name: catName, age: catAge, weight: catWeight, breed: catBreed, photo: fotoData, schedule: horariosComida.map { formatearHora($0) }, history: [
-                            History(date: Date().addingTimeInterval(-86400 * 3), amount: 50), // 3 días atrás
-                            History(date: Date().addingTimeInterval(-86400 * 2), amount: 40), // 2 días atrás
-                            History(date: Date().addingTimeInterval(-86400), amount: 60),   // 1 día atrás
-                            History(date: Date(), amount: 55) // Hoy
-                        ], amount: 10)
+                        viewModel.cat = Cat(
+                            name: catName,
+                            age: catAge, weight: catWeight,
+                            breed: catBreedClassified,
+                            photo: fotoData,
+                            schedule: horariosComida.map { formatearHora($0) },
+                            history: [],
+                            amount: 10)
                         
                         viewModel.save()
                         
@@ -169,12 +230,32 @@ struct CatFeederFormView: View {
             }
         }
         .background(Color.blue.opacity(0.15)
-        .edgesIgnoringSafeArea(.all))
+            .edgesIgnoringSafeArea(.all))
         .onTapGesture {
             UIApplication.shared.closeKeyboard()
         }
+        
     } // Fondo azul bebé que cubre toda la pantalla
     
+    private func predictBreed(model: CatBreedClassifier) {
+        
+        guard let photo = photo else {
+            print("no prediction")
+            return
+        }
+        
+        guard let pixelBuffer = photo.toCVPixelBuffer() else {
+            print("No pixel buffer")
+            return
+        }
+        do {
+            let prediction = try model.prediction(image: pixelBuffer)
+            catBreedClassified = prediction.classLabel
+            self.breedProbabilities = prediction.dogorcat
+        } catch let e {
+            print("error ", e)
+        }
+    }
     
     // Función para agregar un nuevo horario
     private func agregarHorario() {
@@ -242,5 +323,56 @@ import SwiftUI
 extension UIApplication {
     func closeKeyboard() {
         sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+
+extension UIImage {
+    
+    // https://www.hackingwithswift.com/whats-new-in-ios-11
+    func toCVPixelBuffer() -> CVPixelBuffer? {
+        
+        let attrs = [kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue, kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue] as CFDictionary
+        var pixelBuffer : CVPixelBuffer?
+        let status = CVPixelBufferCreate(kCFAllocatorDefault, Int(self.size.width), Int(self.size.height), kCVPixelFormatType_32ARGB, attrs, &pixelBuffer)
+        guard (status == kCVReturnSuccess) else {
+            return nil
+        }
+        
+        CVPixelBufferLockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
+        let pixelData = CVPixelBufferGetBaseAddress(pixelBuffer!)
+        
+        let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
+        let context = CGContext(data: pixelData, width: Int(self.size.width), height: Int(self.size.height), bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer!), space: rgbColorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)
+        
+        context?.translateBy(x: 0, y: self.size.height)
+        context?.scaleBy(x: 1.0, y: -1.0)
+        
+        UIGraphicsPushContext(context!)
+        self.draw(in: CGRect(x: 0, y: 0, width: self.size.width, height: self.size.height))
+        UIGraphicsPopContext()
+        CVPixelBufferUnlockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
+        
+        return pixelBuffer
+    }
+}
+
+struct ProgressBar: View {
+    var progress: Double
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .foregroundColor(.gray.opacity(0.3))
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                
+                Rectangle()
+                    .foregroundColor(.blue)
+                    .frame(width: CGFloat(self.progress) * geometry.size.width, height: geometry.size.height)
+                    .animation(.easeInOut(duration: 0.5))
+            }
+            .cornerRadius(10)
+        }
     }
 }
