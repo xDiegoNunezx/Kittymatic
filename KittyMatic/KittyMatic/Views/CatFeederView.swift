@@ -72,6 +72,9 @@ struct CatFeederView: View {
                         .font(.subheadline)
                         .foregroundColor(.gray)
                         .background(Color.white.opacity(0.8))
+                        .onTapGesture {
+                            mqttManager.connect()
+                        }
                     
                     // Foto del Gato y Nombre (como botón)
                     HStack(spacing: 20) {
@@ -104,9 +107,6 @@ struct CatFeederView: View {
                             Text("🍽️ Monitoreando...")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
-                                .onTapGesture {
-                                    viewModel.connect()
-                                }
                         }
                         Spacer()
                     }
