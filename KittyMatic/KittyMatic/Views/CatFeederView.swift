@@ -104,6 +104,9 @@ struct CatFeederView: View {
                             Text("🍽️ Monitoreando...")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
+                                .onTapGesture {
+                                    viewModel.connect()
+                                }
                         }
                         Spacer()
                     }

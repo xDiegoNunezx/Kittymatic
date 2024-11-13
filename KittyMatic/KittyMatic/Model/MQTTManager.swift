@@ -19,6 +19,10 @@ class MQTTManager: ObservableObject {
         _ = mqtt.connect()
     }
     
+    func connect() {
+        _ = mqtt.connect()
+    }
+    
     func subscribeTopic() {
         mqtt.subscribe("cantidad")  // Suscribirse al tema donde Python publica mensajes
         mqtt.subscribe("comio")
