@@ -140,7 +140,7 @@ struct CatFeederView: View {
                         VStack(alignment: .leading) {
                             let percentage: Double = ((viewModel.fullAmount * 100.0) / 22.3)
                             let fullPercentage: Double = 100.0 - percentage
-                            Text(String(format: "%.2f%", fullPercentage))
+                            Text(String(format: "%.2f% %", fullPercentage))
                                 .font(.system(size: 48))
                                 .fontWeight(.bold)
                                 .foregroundStyle(canFeed ? .black : .red)
@@ -159,9 +159,9 @@ struct CatFeederView: View {
                     HStack(spacing: 20) {
                         Button(action: {
                             // Acción para dispensar comida
-                            canFeed = viewModel.dispensar()
+                            //canFeed = viewModel.dispensar()
                             mqttManager.sendMsg(onTopic: "Orden", withMessage: "dispensar")
-                            gramosConsumidos = viewModel.getGramosConsumidos()
+                            //gramosConsumidos = viewModel.getGramosConsumidos()
                             print("Dispensando...")
                         }) {
                             VStack {
@@ -231,10 +231,11 @@ struct CatFeederView: View {
             viewModel.fullAmount = getComidaDisponible()
         }
         .onChange(of: mqttManager.messages["comio"]) { oldValue, newValue in
-            //let comio = getCuantoComio()
-            //viewModel.cat?.history.append(History(date: Date(), amount: comio))
-            //viewModel.save()
-            gramosConsumidos = viewModel.getGramosConsumidos()
+            if let comio = getCuantoComio() {
+                viewModel.cat?.history.append(History(date: Date(), amount: comio))
+                viewModel.save()
+                gramosConsumidos = viewModel.getGramosConsumidos()
+            }
         }
         .onChange(of: mqttManager.messages["comio2"]) { oldValue, newValue in
             if let comio = getCuantoComio2() {
@@ -253,7 +254,7 @@ struct CatFeederView: View {
         }
     }
     
-    func getCuantoComio() -> Double {
+    func getCuantoComio() -> Double? {
         if let latestMessage = mqttManager.messages["comio"]?.last {
             Double(latestMessage) ?? 0.0
         } else {
